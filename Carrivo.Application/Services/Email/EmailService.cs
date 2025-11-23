@@ -50,14 +50,18 @@ public class EmailService : IEmailService
     {
         try
         {
-            _logger.LogInformation("Attempting to send email to {ToEmail} using SMTP {SmtpHost}:{SmtpPort}", 
+            _logger.LogInformation("Attempting to send email to {ToEmail} using SMTP {SmtpHost}:{SmtpPort}",
                 toEmail, _emailSettings.SmtpHost, _emailSettings.SmtpPort);
-            
+
+            // 1. إعداد SmtpClient مع Host و Port
             using var smtpClient = new SmtpClient(_emailSettings.SmtpHost, _emailSettings.SmtpPort)
             {
                 EnableSsl = _emailSettings.EnableSsl,
                 Credentials = new NetworkCredential(_emailSettings.SmtpUsername, _emailSettings.SmtpPassword)
             };
+
+            // 2. تأكد من استخدام طريقة التسليم عبر الشبكة (ضروري لـ Gmail)
+            smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
 
             var mailMessage = new MailMessage
             {
@@ -70,13 +74,23 @@ public class EmailService : IEmailService
             mailMessage.To.Add(toEmail);
 
             await smtpClient.SendMailAsync(mailMessage);
-            
+
             _logger.LogInformation("Email sent successfully to {ToEmail}", toEmail);
+        }
+        catch (SmtpException smtpEx) // 3. التقاط أخطاء SMTP المحددة للتشخيص
+        {
+            _logger.LogError(smtpEx,
+                "SMTP Error sending email to {ToEmail}. Status: {StatusCode}. Message: {ErrorMessage}. Check App Password.",
+                toEmail,
+                smtpEx.StatusCode,
+                smtpEx.Message);
+            // رمي استثناء جديد برسالة أوضح للمستخدم
+            throw new Exception($"فشل إرسال البريد عبر SMTP: {smtpEx.Message} (رمز الحالة: {smtpEx.StatusCode})", smtpEx);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send email to {ToEmail}. Error: {ErrorMessage}", toEmail, ex.Message);
-            throw new Exception($"Failed to send email: {ex.Message}", ex);
+            _logger.LogError(ex, "Failed to send email to {ToEmail}. General Error: {ErrorMessage}", toEmail, ex.Message);
+            throw new Exception($"فشل إرسال البريد: {ex.Message}", ex);
         }
     }
 
