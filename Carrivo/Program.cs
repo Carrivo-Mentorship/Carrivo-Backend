@@ -1,18 +1,23 @@
 using SwaggerThemes;
+using System.Reflection;
 using TaskManagement.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ÞÑÇÁÉ ãáÝ ÇáÅÚÏÇÏÇÊ ÇáãÍáí ÅÐÇ æõÌÏ
 builder.Configuration.AddJsonFile("appsettings.Development.Local.json", optional: true, reloadOnChange: true);
 
+// ÊÓÌíá ÇáÎÏãÇÊ ÇáãÎÕÕÉ (Configuration)
 builder.Services.AddDatabaseConfiguration(builder.Configuration);
 builder.Services.AddAuthenticationConfiguration(builder.Configuration);
+
+// ÊÓÌíá Repositories æ Services (Dependency Injection)
 builder.Services.AddRepositories();
 builder.Services.AddServices();
 
 builder.Services.AddControllers();
 
-// Swagger/OpenAPI
+// Swagger/OpenAPI Setup
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -23,7 +28,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Educational platform API with authentication"
     });
 
-    // Add JWT Authentication to Swagger
+    // ÅÖÇÝÉ ÅÚÏÇÏÇÊ JWT Authentication Åáì Swagger
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -48,34 +53,49 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
+
+    // ÇáÍÕæá Úáì ãÓÇÑ ãáÝ ÇáÊæËíÞ XML
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
-// CORS (configure as needed)
+// **********************************
+// ÅÚÏÇÏ CORS ááÓãÇÍ áÃí ãÕÏÑ (ÛíÑ Âãä ááÜ Production)
+// **********************************
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CarrivoCorsPolicy", builder =>
+    options.AddPolicy("CarrivoCorsPolicy", policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.AllowAnyOrigin() // <--- íÓãÍ áÃí äØÇÞ ÈÇáæÕæá
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
+// **********************************
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// **********************************
+// ÊÝÚíá Swagger æ SwaggerUI áÌãíÚ ÇáÈíÆÇÊ (ÈãÇ Ýí Ðáß Production)
+// ÇáÊÚÏíá: ÊÚííä RoutePrefix ÝÇÑÛðÇ áÊÔÛíá Swagger Úáì ÇáãÓÇÑ ÇáÌÐÑ (/)
+// **********************************
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(Theme.UniversalDark);
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Carrivo API V1");
+    options.RoutePrefix = string.Empty; // <--- åÐÇ åæ ÇáÊÚÏíá ÇáåÇã! íÝÊÍ Swagger Úáì /
+  
+});
+// **********************************
+
 
 app.UseHttpsRedirection();
 
 // CORS
 app.UseCors("CarrivoCorsPolicy");
 
-// Authentication & Authorization (ORDER MATTERS!)
+// Authentication & Authorization (ÇáÊÑÊíÈ ãåã!)
 app.UseAuthentication();
 app.UseAuthorization();
 
