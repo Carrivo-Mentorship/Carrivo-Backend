@@ -2,8 +2,10 @@
 using Carrivo.Application.DTOs.Personality_Test;
 using Carrivo.Application.Interfaces;
 using Carrivo.Core.Entities;
+using Carrivo.Core.Enums;
 using Carrivo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Text.Json;
 
 namespace Carrivo.Application.Services.Test;
@@ -180,5 +182,95 @@ public class PersonalityTestService : IPersonalityTestService
         var progressData = JsonSerializer.Deserialize<TestProgressDto>(testAttempt.MlModelOutput);
 
         return ApiResponse<TestProgressDto>.Success(progressData!, "Progress retrieved successfully");
+    }
+
+    public async Task<ApiResponse<bool>> SaveTestResultAsync(SaveTestResultRequest request)
+    {
+        var studentProfile = await _context.StudentProfiles
+            .FirstOrDefaultAsync(sp => sp.UserId == request.UserId && !sp.IsDeleted);
+
+        if (studentProfile == null)
+            return ApiResponse<bool>.Failure("Student profile not found", statusCode: 404);
+
+        studentProfile.TestCareerCategory = request.CareerCategory;
+        studentProfile.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return ApiResponse<bool>.Success(true, "Test result saved successfully");
+    }
+
+    public async Task<ApiResponse<TestResultResponse>> GetTestResultAsync(Guid userId)
+    {
+        var studentProfile = await _context.StudentProfiles
+            .FirstOrDefaultAsync(sp => sp.UserId == userId && !sp.IsDeleted);
+
+        if (studentProfile == null)
+            return ApiResponse<TestResultResponse>.Failure("Student profile not found", statusCode: 404);
+
+        if (studentProfile.TestCareerCategory == null)
+            return ApiResponse<TestResultResponse>.Failure("No test result found for this user", statusCode: 404);
+
+        var category = studentProfile.TestCareerCategory.Value;
+        var categoryName = category.ToString();
+        
+        // Get all career results for this category
+        var careerResults = GetCareerResultsByCategory(category);
+
+        var response = new TestResultResponse
+        {
+            CategoryName = categoryName,
+            CareerResults = careerResults
+        };
+
+        return ApiResponse<TestResultResponse>.Success(response, "Test result retrieved successfully");
+    }
+
+    private static List<CareerResultItem> GetCareerResultsByCategory(CareerCategory category)
+    {
+        var results = new List<CareerResultItem>();
+
+        var mapping = new Dictionary<CareerCategory, CareerResult[]>
+        {
+            { CareerCategory.AIML, new[] { CareerResult.AIEngineer, CareerResult.AIAndDataScientist, CareerResult.MachineLearning, CareerResult.MLOps } },
+            { CareerCategory.Data, new[] { CareerResult.DataAnalyst, CareerResult.BIAnalyst, CareerResult.DataEngineer } },
+            { CareerCategory.Software, new[] { CareerResult.Frontend, CareerResult.Backend, CareerResult.FullStack, CareerResult.SoftwareArchitect, CareerResult.DeveloperRelations, CareerResult.ProductManager, CareerResult.TechnicalWriter, CareerResult.DevOps, CareerResult.QA, CareerResult.EngineeringManager } },
+            { CareerCategory.Security, new[] { CareerResult.CyberSecurity } },
+            { CareerCategory.Game, new[] { CareerResult.GameDeveloper, CareerResult.ServerSideGameDeveloper } },
+            { CareerCategory.Mobile, new[] { CareerResult.Android, CareerResult.iOS } },
+            { CareerCategory.UXDesign, new[] { CareerResult.UXDesign } },
+            { CareerCategory.Blockchain, new[] { CareerResult.Blockchain } }
+        };
+
+        if (mapping.TryGetValue(category, out var careers))
+        {
+            foreach (var career in careers)
+            {
+                results.Add(new CareerResultItem
+                {
+                    Id = (int)career,
+                    Name = FormatCareerName(career.ToString())
+                });
+            }
+        }
+
+        return results;
+    }
+
+    private static string FormatCareerName(string enumName)
+    {
+        // Convert PascalCase to readable format (e.g., "AIEngineer" -> "AI Engineer")
+        var result = new StringBuilder();
+        foreach (var c in enumName)
+        {
+            if (char.IsUpper(c) && result.Length > 0)
+            {
+                // Check if previous char was also uppercase (acronym like "AI")
+                if (!char.IsUpper(result[result.Length - 1]))
+                    result.Append(' ');
+            }
+            result.Append(c);
+        }
+        return result.ToString();
     }
 }

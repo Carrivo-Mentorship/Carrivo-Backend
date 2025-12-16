@@ -20,6 +20,9 @@ public class StudentProfile : BaseEntity
     public string? PreferredFields { get; set; }
     public LearningStyle? PreferredLearningStyle { get; set; }
     
+    // Test Result
+    public CareerCategory? TestCareerCategory { get; set; }
+    
     // Navigation Properties
     public Users User { get; set; } = null!;
     public ICollection<StudentTestAttempt> TestAttempts { get; set; } = new List<StudentTestAttempt>();

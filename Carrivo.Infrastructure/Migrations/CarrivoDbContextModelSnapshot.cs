@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Carrivo.Infrastructure.Data.Migrations
+namespace Carrivo.Infrastructure.Migrations
 {
     [DbContext(typeof(CarrivoDbContext))]
     partial class CarrivoDbContextModelSnapshot : ModelSnapshot
@@ -969,6 +969,9 @@ namespace Carrivo.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<int?>("PreferredLearningStyle")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TestCareerCategory")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")

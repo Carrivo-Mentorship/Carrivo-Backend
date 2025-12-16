@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Carrivo.Infrastructure.Data.Migrations
+namespace Carrivo.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class Init : Migration
@@ -353,6 +353,7 @@ namespace Carrivo.Infrastructure.Data.Migrations
                     CurrentSkills = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     PreferredFields = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     PreferredLearningStyle = table.Column<int>(type: "int", nullable: true),
+                    TestCareerCategory = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
