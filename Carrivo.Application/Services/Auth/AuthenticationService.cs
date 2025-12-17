@@ -54,7 +54,7 @@ public class AuthenticationService : IAuthenticationService
         {
             Id = Guid.NewGuid(),
             FirstName = request.FirstName,
-            LastName = request.LastName,
+            LastName = request.LastName ?? string.Empty,
             Email = request.Email,
             UserName = request.Email,
             UserType = request.UserType,
@@ -341,7 +341,7 @@ public class AuthenticationService : IAuthenticationService
         var additionalClaims = new Dictionary<string, string>
         {
             ["firstName"] = user.FirstName,
-            ["lastName"] = user.LastName,
+            ["lastName"] = user.LastName ?? string.Empty,
             ["emailVerified"] = user.EmailConfirmed.ToString()
         };
 
@@ -383,7 +383,7 @@ public class AuthenticationService : IAuthenticationService
                 Id = user.Id,
                 Email = user.Email!,
                 FirstName = user.FirstName,
-                LastName = user.LastName,
+                LastName = user.LastName ?? string.Empty,
                 UserType = user.UserType,
                 EmailVerified = user.EmailConfirmed,
                 ProfilePictureUrl = user.ProfilePictureUrl,

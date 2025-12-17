@@ -4,20 +4,16 @@ using TaskManagement.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ÞÑÇÁÉ ãáÝ ÇáÅÚÏÇÏÇÊ ÇáãÍáí ÅÐÇ æõÌÏ
 builder.Configuration.AddJsonFile("appsettings.Development.Local.json", optional: true, reloadOnChange: true);
 
-// ÊÓÌíá ÇáÎÏãÇÊ ÇáãÎÕÕÉ (Configuration)
 builder.Services.AddDatabaseConfiguration(builder.Configuration);
 builder.Services.AddAuthenticationConfiguration(builder.Configuration);
 
-// ÊÓÌíá Repositories æ Services (Dependency Injection)
 builder.Services.AddRepositories();
 builder.Services.AddServices();
 
 builder.Services.AddControllers();
 
-// Swagger/OpenAPI Setup
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -28,7 +24,6 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Educational platform API with authentication"
     });
 
-    // ÅÖÇÝÉ ÅÚÏÇÏÇÊ JWT Authentication Åáì Swagger
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -54,48 +49,35 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // ÇáÍÕæá Úáì ãÓÇÑ ãáÝ ÇáÊæËíÞ XML
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
-// **********************************
-// ÅÚÏÇÏ CORS ááÓãÇÍ áÃí ãÕÏÑ (ÛíÑ Âãä ááÜ Production)
-// **********************************
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CarrivoCorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin() // <--- íÓãÍ áÃí äØÇÞ ÈÇáæÕæá
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
 });
-// **********************************
 
 
 var app = builder.Build();
 
-// **********************************
-// ÊÝÚíá Swagger æ SwaggerUI áÌãíÚ ÇáÈíÆÇÊ (ÈãÇ Ýí Ðáß Production)
-// ÇáÊÚÏíá: ÊÚííä RoutePrefix ÝÇÑÛðÇ áÊÔÛíá Swagger Úáì ÇáãÓÇÑ ÇáÌÐÑ (/)
-// **********************************
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Carrivo API V1");
-    options.RoutePrefix = string.Empty; // <--- åÐÇ åæ ÇáÊÚÏíá ÇáåÇã! íÝÊÍ Swagger Úáì /
-  
+    // options.RoutePrefix = string.Empty;
 });
-// **********************************
-
 
 app.UseHttpsRedirection();
 
 // CORS
 app.UseCors("CarrivoCorsPolicy");
 
-// Authentication & Authorization (ÇáÊÑÊíÈ ãåã!)
 app.UseAuthentication();
 app.UseAuthorization();
 

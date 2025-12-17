@@ -64,4 +64,36 @@ public class TestController : ControllerBase
         var result = await _testService.GetTestProgressAsync(userId);
         return StatusCode(result.StatusCode, result);
     }
+
+    /// <summary>
+    /// Saves test result (career category) for user
+    /// POST /api/test/result
+    /// </summary>
+    [HttpPost("result")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SaveTestResult([FromBody] SaveTestResultRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _testService.SaveTestResultAsync(request);
+        return StatusCode(result.StatusCode, result);
+    }
+
+    /// <summary>
+    /// Gets test result for user (returns category and all careers in that category)
+    /// GET /api/test/result/{userId}
+    /// </summary>
+    [HttpGet("result/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTestResult(Guid userId)
+    {
+        var result = await _testService.GetTestResultAsync(userId);
+        return StatusCode(result.StatusCode, result);
+    }
 }

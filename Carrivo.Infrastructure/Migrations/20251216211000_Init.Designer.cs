@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Carrivo.Infrastructure.Data.Migrations
+namespace Carrivo.Infrastructure.Migrations
 {
     [DbContext(typeof(CarrivoDbContext))]
-    [Migration("20251108081728_Init")]
+    [Migration("20251216211000_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -972,6 +972,9 @@ namespace Carrivo.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<int?>("PreferredLearningStyle")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TestCareerCategory")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
